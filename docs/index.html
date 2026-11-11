@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="依据深圳市住建局与国家统计局公开数据，跟踪深圳二手住宅成交量、区域份额与销售价格指数。">
+  <title>深圳二手房成交跟踪</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="price.css">
+  <script defer src="official-periods.js"></script>
+  <script defer src="official-daily.js"></script>
+  <script defer src="import.js"></script>
+  <script defer src="app.js"></script>
+  <script defer src="nbs.js"></script>
+  <script defer src="price.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="frame top-inner">
+      <a class="brand" href="#overview">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span>深圳楼市观察</span>
+      </a>
+      <nav aria-label="页面导航">
+        <a href="#overview" aria-current="location">成交总览</a>
+        <a href="#regions">区域分布</a>
+        <a href="#prices">价格指数</a>
+        <a href="#details">成交明细</a>
+      </nav>
+      <button class="button top-button" type="button" data-open="sources">数据来源 <span aria-hidden="true">↗</span></button>
+    </div>
+  </header>
+
+  <main class="frame" id="overview">
+    <section class="heading" aria-labelledby="page-title">
+      <div>
+        <p class="location"><span aria-hidden="true"></span> 广东省 · 深圳市</p>
+        <h1 id="page-title">二手房成交跟踪</h1>
+        <p class="subtitle">深圳市住建局成交数据 · 国家统计局价格指数</p>
+      </div>
+      <div class="heading-actions">
+        <span class="data-status" id="data-status"></span>
+        <button class="button primary" type="button" data-open="update"><span class="plus" aria-hidden="true">+</span> 更新数据</button>
+      </div>
+    </section>
+
+    <section class="filters" aria-label="成交筛选">
+      <div class="filter-left">
+        <div class="segments" role="group" aria-label="统计周期">
+          <button type="button" data-kind="daily" aria-pressed="true">每日</button>
+          <button type="button" data-kind="weekly" aria-pressed="false">每周</button>
+          <button type="button" data-kind="monthly" aria-pressed="false">每月</button>
+        </div>
+        <label class="filter-field"><span>区域</span><select id="district-select" aria-label="区域"></select></label>
+        <label class="filter-field"><span id="date-label">日期</span><select id="date-select" aria-label="查看日期"></select></label>
+      </div>
+      <span id="coverage" class="coverage"></span>
+    </section>
+
+    <section class="kpis" aria-label="成交指标">
+      <article class="kpi featured">
+        <p id="count-label">当日成交</p>
+        <div><strong id="count">—</strong><span class="unit">套</span></div>
+        <small id="count-note"></small>
+      </article>
+      <article class="kpi">
+        <p id="change-label">较前一日</p>
+        <div><strong id="change">—</strong></div>
+        <small id="change-note"></small>
+      </article>
+      <article class="kpi">
+        <p id="year-label">较上周同日</p>
+        <div><strong id="year">—</strong></div>
+        <small id="year-note"></small>
+      </article>
+      <article class="kpi">
+        <p>成交面积</p>
+        <div><strong id="area">—</strong><span class="unit" id="area-unit">㎡</span></div>
+        <small id="area-note"></small>
+      </article>
+    </section>
+
+    <div class="panels">
+      <section class="panel trend" aria-labelledby="trend-title">
+        <div class="panel-head">
+          <div><h2 id="trend-title">成交量趋势</h2><p id="trend-note"></p></div>
+          <div class="chart-controls">
+            <div id="metric-buttons" class="segments compact" role="group" aria-label="趋势指标">
+              <button type="button" data-metric="count" aria-pressed="true">套数</button>
+              <button type="button" data-metric="area" aria-pressed="false">面积</button>
+            </div>
+            <div id="range-buttons" class="segments compact" role="group" aria-label="趋势时间范围"></div>
+          </div>
+        </div>
+        <div class="chart-wrap" id="chart-wrap">
+          <canvas id="trend-chart" role="img" aria-label="成交量趋势柱状图，数值也可在下方明细表查看"></canvas>
+          <div class="chart-tip" id="chart-tip" hidden></div>
+          <p class="empty chart-empty" id="chart-empty" hidden>这个时间范围没有可用数据。</p>
+        </div>
+        <div class="chart-foot"><span><i></i><span id="chart-legend">二手住宅成交套数</span></span><span>点击柱形切换查看期</span></div>
+      </section>
+
+      <section class="panel region" id="regions" aria-labelledby="region-title">
+        <div class="panel-head">
+          <div><h2 id="region-title">各区成交</h2><p id="region-period"></p></div>
+          <span class="pill" id="region-coverage"></span>
+        </div>
+        <div class="ranking" id="ranking"></div>
+        <div class="rank-foot" id="region-note"></div>
+      </section>
+    </div>
+
+    <section id="prices" class="panel prices" aria-label="二手住宅销售价格指数"></section>
+
+    <section class="panel details" id="details" aria-labelledby="details-title">
+      <div class="panel-head">
+        <div><h2 id="details-title">成交明细</h2><p id="detail-note"></p></div>
+        <button class="button secondary" id="export" type="button"><span aria-hidden="true">↓</span> 导出 CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col" id="table-date">日期</th><th scope="col">区域</th><th scope="col" class="numeric">成交套数</th><th scope="col" class="numeric">成交面积（㎡）</th><th scope="col" class="numeric">套均面积（㎡）</th><th scope="col">数据来源</th></tr></thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+      <div class="table-foot"><span id="page-count"></span><div class="page-buttons"><button type="button" id="page-prev" aria-label="上一页">‹</button><button type="button" id="page-next" aria-label="下一页">›</button></div></div>
+    </section>
+
+    <section class="panel metrics" aria-labelledby="metrics-title">
+      <div class="panel-head"><div><h2 id="metrics-title">成交结构与挂牌</h2><p>各项分析所需的政府公开数据</p></div></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">分析角度</th><th scope="col">本工具可查</th><th scope="col">所需数据</th></tr></thead>
+          <tbody>
+            <tr><td>成交总价段占比</td><td>待官方数据</td><td>分总价段成交套数或逐套成交总价</td></tr>
+            <tr><td>面积段、户型成交占比</td><td>套均面积、分面积段价格指数</td><td>分面积段或分户型成交套数</td></tr>
+            <tr><td>成交均价、分区价格</td><td>全市销售价格指数</td><td>分区成交金额和成交面积</td></tr>
+            <tr><td>挂牌走势、议价与成交周期</td><td>待官方数据</td><td>同口径挂牌历史、挂牌价与成交价、挂牌与成交日期</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <footer class="site-foot"><span>深圳楼市观察</span><button class="text-button" data-open="sources" type="button">数据来源与统计口径</button></footer>
+  </main>
+
+  <dialog id="sources-dialog" aria-labelledby="sources-title">
+    <div class="dialog-head"><h2 id="sources-title">数据来源与口径</h2><button class="close" type="button" aria-label="关闭">×</button></div>
+    <div class="dialog-body">
+      <p>成交套数和面积来自深圳市住建局公开的二手房成交统计，筛选用途为住宅。价格走势采用国家统计局发布的深圳二手住宅销售价格指数。</p>
+      <div id="source-list" class="source-list"></div>
+      <p class="muted">各区数据按可查范围展示，缺少记录时留空。价格指数反映价格变动幅度，单位为百分比。</p>
+    </div>
+  </dialog>
+
+  <dialog id="update-dialog" aria-labelledby="update-title">
+    <div class="dialog-head"><h2 id="update-title">更新成交数据</h2><button class="close" type="button" aria-label="关闭">×</button></div>
+    <div class="dialog-body">
+      <p>从深圳市政府数据开放平台下载「二手房成交信息（按日统计）」的 CSV 或 JSON，再导入看板。</p>
+      <div class="update-links">
+        <a id="download-source" href="https://opendata.sz.gov.cn/data/dataSet/toDataDetails/29200_01903513" target="_blank" rel="noopener noreferrer">打开官方数据集 ↗</a>
+        <button type="button" id="backup" class="text-button" hidden>备份已导入数据</button>
+      </div>
+      <label for="import-file" class="dropzone" id="dropzone">
+        <span class="upload-mark" aria-hidden="true">↑</span>
+        <strong>选择或拖入数据文件</strong>
+        <small>支持 CSV、JSON</small>
+      </label>
+      <input id="import-file" type="file" class="visually-hidden" accept=".csv,.json,text/csv,application/json">
+      <p id="import-status" class="import-status" role="status"></p>
+      <p class="muted">完整下载需登录并完成实名认证。导入校验官方字段格式，数据保存在当前浏览器。按周、按月统计时，所选区域须覆盖整周或整月的日期。</p>
+    </div>
+  </dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>

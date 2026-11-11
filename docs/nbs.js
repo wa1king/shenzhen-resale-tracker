@@ -1,0 +1,25 @@
+// 国家统计局《70个大中城市商品住宅销售价格变动情况》表2、表4（一），取深圳。
+// 每组第一个数是环比指数（上月=100），第二个数是同比指数（上年同月=100）。
+window.NBS_PRICE_ROWS = [
+  { date: '2025-01', url: 'https://www.stats.gov.cn/sj/zxfb/202502/t20250219_1958761.html', overall: [100.4, 93.9], upTo90: [100.3, 93.5], from90To144: [100.4, 94.5], above144: [100.6, 94.2] },
+  { date: '2025-02', url: 'https://www.stats.gov.cn/sj/zxfb/202503/t20250317_1959009.html', overall: [100.3, 94.7], upTo90: [100.5, 94.2], from90To144: [100.1, 95.4], above144: [100.3, 95.2] },
+  { date: '2025-03', url: 'https://www.stats.gov.cn/sj/zxfb/202504/t20250416_1959311.html', overall: [100.3, 95.9], upTo90: [100.4, 95.8], from90To144: [100.1, 96.1], above144: [100.3, 95.6] },
+  { date: '2025-04', url: 'https://www.stats.gov.cn/sj/zxfb/202505/t20250519_1959852.html', overall: [99.7, 96.3], upTo90: [99.6, 96.1], from90To144: [99.9, 96.7], above144: [99.8, 96.2] },
+  { date: '2025-05', url: 'https://www.stats.gov.cn/sj/zxfb/202506/t20250616_1960163.html', overall: [99.5, 96.8], upTo90: [99.6, 96.6], from90To144: [99.5, 97.1], above144: [99.4, 96.7] },
+  { date: '2025-06', url: 'https://www.stats.gov.cn/sj/zxfb/202507/t20250715_1960403.html', overall: [99.5, 97.2], upTo90: [99.4, 96.9], from90To144: [99.5, 97.5], above144: [99.7, 98.1] },
+  { date: '2025-07', url: 'https://www.stats.gov.cn/sj/zxfb/202508/t20250815_1960781.html', overall: [99.1, 97.5], upTo90: [99.1, 97], from90To144: [98.9, 97.9], above144: [99.2, 98.8] },
+  { date: '2025-08', url: 'https://www.stats.gov.cn/sj/zxfb/202509/t20250915_1961175.html', overall: [99.2, 98.1], upTo90: [99.2, 98], from90To144: [99.4, 97.6], above144: [99, 99.2] },
+  { date: '2025-09', url: 'https://www.stats.gov.cn/sj/zxfb/202510/t20251020_1961597.html', overall: [99, 98.3], upTo90: [99, 98.3], from90To144: [99.1, 97.9], above144: [98.9, 99.4] },
+  { date: '2025-10', url: 'https://www.stats.gov.cn/sj/zxfb/202511/t20251114_1961850.html', overall: [99.1, 96.7], upTo90: [99.1, 96.9], from90To144: [99, 96.1], above144: [99, 97.3] },
+  { date: '2025-11', url: 'https://www.stats.gov.cn/sj/zxfb/202512/t20251215_1962069.html', overall: [99, 95.2], upTo90: [99, 95.3], from90To144: [99.2, 95.1], above144: [98.4, 94.9] },
+  { date: '2025-12', url: 'https://www.stats.gov.cn/sj/zxfb/202601/t20260119_1962319.html', overall: [99.4, 94.6], upTo90: [99.5, 94.8], from90To144: [99.2, 94.3], above144: [99.6, 94.2] },
+  { date: '2026-01', url: 'https://www.stats.gov.cn/sj/zxfb/202602/t20260213_1962617.html', overall: [99.4, 93.5], upTo90: [99.2, 93.7], from90To144: [99.5, 93.5], above144: [99.4, 93.2] },
+  { date: '2026-02', url: 'https://www.stats.gov.cn/sj/zxfb/202603/t20260316_1962774.html', overall: [99.6, 92.9], upTo90: [99.6, 93], from90To144: [99.5, 93], above144: [99.7, 92.6] },
+  { date: '2026-03', url: 'https://www.stats.gov.cn/sj/zxfb/202604/t20260416_1963320.html', overall: [100.4, 93], upTo90: [100.6, 93.2], from90To144: [100.3, 93.1], above144: [100.3, 92.6] },
+  { date: '2026-04', url: 'https://www.stats.gov.cn/sj/zxfb/202605/t20260518_1963715.html', overall: [100.3, 93.5], upTo90: [100.2, 93.7], from90To144: [100.5, 93.6], above144: [100.2, 93] },
+  { date: '2026-05', url: 'https://www.stats.gov.cn/sj/zxfb/202606/t20260616_1963946.html', overall: [100.6, 94.5], upTo90: [100.3, 94.4], from90To144: [100.9, 95], above144: [100.6, 94.1] },
+  { date: '2026-06', url: 'https://www.stats.gov.cn/sj/zxfb/202607/t20260715_1964115.html', overall: [100.3, 95.3], upTo90: [100.3, 95.2], from90To144: [100.6, 96], above144: [100.1, 94.4] },
+  { date: '2026-07', url: 'https://www.stats.gov.cn/sj/zxfb/202608/t20260817_1965050.html', overall: [100.2, 96.4], upTo90: [100.1, 96.1], from90To144: [100.4, 97.5], above144: [100, 95.2] },
+  { date: '2026-08', url: 'https://www.stats.gov.cn/sj/zxfb/202609/t20260915_1965304.html', overall: [100.1, 97.3], upTo90: [100.3, 97.2], from90To144: [100, 98.1], above144: [100.2, 96.3] },
+  { date: '2026-09', url: 'https://www.stats.gov.cn/sj/zxfb/202610/t20261019_1965609.html', overall: [100.2, 98.5], upTo90: [100.1, 98.3], from90To144: [100.3, 99.2], above144: [100.4, 97.8] },
+];
