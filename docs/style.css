@@ -107,6 +107,10 @@ h1 { font-size: clamp(27px, 3.3vw, 44px); line-height: 1.19; font-weight: 800; l
 .chart-empty { position: absolute; inset: 0; display: grid; place-items: center; }
 
 .details { margin-top: 15px; }
+.communities { margin-top: 15px; }
+.communities .panel-head a, .details .panel-head a { text-decoration: none; }
+.community-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 15px 20px; }
+.community-controls input { width: min(250px, 62vw); min-height: 34px; padding: 4px 9px; border: 1px solid #dce3ee; border-radius: 7px; color: var(--ink); }
 .metrics { margin-top: 15px; }
 .metrics .panel-head { padding-bottom: 15px; }
 .details .panel-head { align-items: center; padding-bottom: 15px; }
@@ -147,7 +151,7 @@ dialog::backdrop { background: #17254176; }
 .import-status.error { color: var(--down); }
 .toast { position: fixed; inset: auto 20px 20px auto; z-index: 10; max-width: min(360px, calc(100vw - 40px)); background: #182441; color: white; padding: 11px 14px; border-radius: 8px; box-shadow: 0 2px 10px #18244135; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-#overview, #regions, #details, #prices { scroll-margin-top: 14px; }
+#overview, #regions, #details, #prices, #communities { scroll-margin-top: 14px; }
 
 @media (max-width: 900px) {
   .frame { width: calc(100% - 44px); }

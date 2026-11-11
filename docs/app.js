@@ -23,7 +23,7 @@ const sources = {
   "daily-aggregate": {
     label: "住建局日数据汇总", url: officialUrl,
     title: "深圳市住建局 · 日数据汇总规则",
-    detail: "自然周从周一到周日。只汇总已结束且有完整日期记录的周和月。已收录的官方月度套数优先显示。"
+    detail: "自然周从周一到周日。明细可查看已收录日的合计，成交趋势和环比只采用完整统计期。"
   },
   ...window.OFFICIAL_PERIOD_SOURCES
 };
@@ -37,6 +37,7 @@ const granularity = {
 const state = { kind: "daily", district: wholeCity, date: "", metric: "count", ranges: { daily: 7, weekly: 8, monthly: 12 }, page: 0 };
 let importedRows = loadImports();
 let records = new Map();
+let weekSamples = new Map();
 let visibleDetails = [];
 let chartPoints = [];
 let chartRegions = [];
@@ -88,6 +89,7 @@ function startOfWeek(date) {
 
 function aggregatePeriods(rows) {
   const groups = new Map();
+  weekSamples = new Map();
   const today = shenzhenDate();
   for (const row of rows.values()) {
     if (row.kind !== "daily") continue;
@@ -95,7 +97,7 @@ function aggregatePeriods(rows) {
     const week = startOfWeek(row.date);
     const periods = [
       { kind: "monthly", date: month, closed: month < today.slice(0, 7) },
-      { kind: "weekly", date: week, closed: shift(week, 6) < today }
+      { kind: "weekly", date: week, closed: row.date <= today }
     ];
     for (const { kind, date, closed } of periods) {
       if (!closed) continue;
@@ -109,16 +111,21 @@ function aggregatePeriods(rows) {
     const [kind, date, district] = key.split("|");
     const [year, month] = date.split("-").map(Number);
     const dayCount = kind === "weekly" ? 7 : new Date(Date.UTC(year, month, 0)).getUTCDate();
-    if (group.length !== dayCount) continue;
+    const partial = kind === "weekly" && (group.length < dayCount || shift(date, 6) >= today);
+    if (group.length !== dayCount && !partial) continue;
     const count = group.reduce((sum, row) => sum + row.count, 0);
     const area = group.every((row) => row.area !== null)
       ? group.reduce((sum, row) => sum + row.area, 0)
       : null;
+    const result = { date, district, kind, count, area, source: "daily-aggregate" };
+    if (partial) {
+      const coveredDates = group.map((row) => row.date).sort();
+      weekSamples.set(key, { ...result, coveredDates });
+      continue;
+    }
     const official = rows.get(key);
     if (official && (official.count !== count || official.area != null || area === null)) continue;
-    rows.set(key, {
-      date, district, kind, count, area, source: "daily-aggregate"
-    });
+    rows.set(key, result);
   }
 }
 
@@ -129,6 +136,10 @@ function rebuild() {
 
 function lookup(date, district = state.district) {
   return records.get(rowKey({ kind: state.kind, date, district }));
+}
+
+function lookupWeekSample(date) {
+  return weekSamples.get(rowKey({ kind: "weekly", date, district: state.district }));
 }
 
 function availableRows() {
@@ -162,7 +173,9 @@ function renderSummary(dates) {
   setText("year-label", config.compare);
   setText("count", current ? intFormat.format(current.count) : "—");
   const latestForDistrict = !current && dates.find((date) => lookup(date));
+  const sample = state.kind === "weekly" && lookupWeekSample(state.date);
   setText("count-note", current ? sourceFor(current).label
+    : sample ? "已收录 " + sample.coveredDates.length + "/7 天，详见下表"
     : latestForDistrict ? "本期暂无记录 · 最近 " + formatPeriod(latestForDistrict) : "本期暂无记录");
   displayChange("change", change(current?.count, prev?.count));
   displayChange("year", change(current?.count, annual?.count));
@@ -232,6 +245,8 @@ function renderRegions(rows) {
 
 function renderTable() {
   const body = byId("table-body");
+  const weekly = state.kind === "weekly";
+  byId("table-coverage").hidden = !weekly;
   body.replaceChildren();
   const totalPages = Math.max(1, Math.ceil(visibleDetails.length / pageSize));
   state.page = Math.min(state.page, totalPages - 1);
@@ -241,6 +256,14 @@ function renderTable() {
     const tr = document.createElement("tr");
     tr.insertCell().textContent = formatPeriod(row.date);
     tr.insertCell().textContent = row.district === wholeCity ? "深圳全市" : row.district;
+    if (weekly) {
+      const coverage = tr.insertCell();
+      coverage.textContent = row.coveredDates ? "已收录 " + row.coveredDates.length + "/7 天" : "完整 7/7 天";
+      if (row.coveredDates) {
+        coverage.title = row.coveredDates.join("、");
+        if (row.coveredDates.length === 1) coverage.textContent += " · " + row.coveredDates[0].slice(5);
+      }
+    }
     const count = tr.insertCell();
     count.className = "numeric";
     count.textContent = intFormat.format(row.count);
@@ -266,9 +289,9 @@ function renderTable() {
   if (!pageRows.length) {
     const row = body.insertRow();
     const cell = row.insertCell();
-    cell.colSpan = 6;
+    cell.colSpan = weekly ? 7 : 6;
     cell.className = "empty";
-    cell.textContent = "当前筛选暂无成交明细。";
+    cell.textContent = weekly ? "所选区域暂无日度记录可按周归集。" : "当前筛选暂无成交明细。";
   }
   setText("page-count", pageRows.length
     ? (first + 1) + "–" + (first + pageRows.length) + " 条 / 共 " + visibleDetails.length + " 条"
@@ -289,9 +312,11 @@ function visiblePeriods(latest, range) {
 function render() {
   const rows = availableRows();
   const config = granularity[state.kind];
-  const dates = [...new Set(rows.map((row) => row.date))].sort().reverse();
+  const weekly = state.kind === "weekly";
+  const details = weekly ? [...rows, ...weekSamples.values()] : rows;
+  const dates = [...new Set(details.map((row) => row.date))].sort().reverse();
   const latest = dates[0] ?? "";
-  const districts = [...new Set(rows.map((row) => row.district))].filter((name) => name !== wholeCity);
+  const districts = [...new Set(details.map((row) => row.district))].filter((name) => name !== wholeCity);
   districts.sort((a, b) => a.localeCompare(b, "zh-CN"));
   if (!dates.includes(state.date)) state.date = latest;
   if (state.district !== wholeCity && !districts.includes(state.district)) state.district = wholeCity;
@@ -299,7 +324,9 @@ function render() {
   selectOptions(byId("date-select"), dates.map((date) => [date, formatPeriod(date)]), state.date);
   setText("date-label", config.label);
   setText("table-date", config.label);
-  setText("data-status", latest ? "已收录至 " + formatDate(state.kind === "weekly" ? shift(latest, 6) : latest) : "暂无完整统计期");
+  const latestDaily = weekly && latest ? [...records.values()]
+    .reduce((date, row) => row.kind === "daily" && row.date > date ? row.date : date, "") : "";
+  setText("data-status", latest ? "已收录至 " + formatDate(latestDaily || latest) : "暂无数据");
   byId("backup").hidden = importedRows.length === 0;
   document.querySelectorAll("[data-kind]").forEach((button) => {
     button.setAttribute("aria-pressed", String(button.dataset.kind === state.kind));
@@ -319,13 +346,20 @@ function render() {
   const periods = visiblePeriods(latest, range);
   chartPoints = periods.map((date) => ({ date, value: lookup(date)?.[state.metric] ?? null }));
   const covered = chartPoints.filter((point) => point.value !== null).length;
-  setText("coverage", periods.length ? covered + " / " + periods.length + " 个统计期有数据" : "需导入完整日数据后汇总");
+  const partialCount = weekly ? periods.filter(lookupWeekSample).length : 0;
+  const coverage = weekly ? "完整周 " + covered + " 个 · 部分周 " + partialCount + " 个"
+    : periods.length ? covered + " / " + periods.length + " 个统计期有数据" : "需导入完整日数据后汇总";
+  setText("coverage", coverage);
   const name = state.district === wholeCity ? "深圳全市" : state.district;
   setText("trend-note", name + " · " + config.name + "成交");
   setText("chart-legend", state.metric === "count" ? "二手住宅成交套数" : "二手住宅成交面积（㎡）");
   const endDate = state.kind === "weekly" && periods.length ? shift(periods.at(-1), 6) : periods.at(-1);
-  setText("detail-note", name + (periods.length ? " · " + formatDate(periods[0]) + " 至 " + formatDate(endDate) : ""));
-  visibleDetails = periods.slice().reverse().map((date) => lookup(date)).filter(Boolean);
+  setText("detail-note", name + (weekly
+    ? " · 部分周仅合计已收录的日期，周趋势和环比使用完整自然周。"
+    : periods.length ? " · " + formatDate(periods[0]) + " 至 " + formatDate(endDate) : ""));
+  setText("chart-empty", weekly ? "所选范围暂无完整周，已收录日期可在成交明细查看。" : "这个时间范围没有可用数据。");
+  visibleDetails = periods.slice().reverse()
+    .map((date) => lookup(date) ?? (weekly ? lookupWeekSample(date) : undefined)).filter(Boolean);
   renderSummary(dates);
   renderRegions(rows);
   renderTable();
@@ -573,10 +607,11 @@ byId("page-prev").addEventListener("click", () => { state.page--; renderTable();
 byId("page-next").addEventListener("click", () => { state.page++; renderTable(); });
 byId("export").addEventListener("click", () => {
   downloadCsv("深圳二手住宅-" + state.district + "-" + state.date + ".csv", [
-    ["统计周期", "统计期", "区域", "成交套数", "成交面积", "套均面积", "来源", "来源链接"],
+    ["统计周期", "统计期", "区域", "数据覆盖", "已收录日期", "成交套数", "成交面积", "套均面积", "来源", "来源链接"],
     ...visibleDetails.map((row) => [
       granularity[row.kind].name, row.kind === "weekly" ? row.date + " 至 " + shift(row.date, 6) : row.date,
-      row.district, row.count, row.area,
+      row.district, row.coveredDates ? "部分周（" + row.coveredDates.length + "/7天）" : row.kind === "weekly" ? "完整周" : "",
+      row.coveredDates?.join("、"), row.count, row.area,
       row.area != null && row.count ? (row.area / row.count).toFixed(2) : "",
       sourceFor(row).label, sourceFor(row).url
     ])

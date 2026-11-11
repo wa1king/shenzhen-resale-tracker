@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="依据深圳市住建局与国家统计局公开数据，跟踪深圳二手住宅成交量、区域份额与销售价格指数。">
+  <meta name="description" content="依据政府公开数据，查看深圳二手住宅成交量、价格指数和小区历史参考价。">
   <title>深圳二手房成交跟踪</title>
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="price.css">
@@ -13,6 +13,8 @@
   <script defer src="app.js"></script>
   <script defer src="nbs.js"></script>
   <script defer src="price.js"></script>
+  <script defer src="community-data.js"></script>
+  <script defer src="community.js"></script>
 </head>
 <body>
   <header class="topbar">
@@ -26,6 +28,7 @@
         <a href="#regions">区域分布</a>
         <a href="#prices">价格指数</a>
         <a href="#details">成交明细</a>
+        <a href="#communities">小区查询</a>
       </nav>
       <button class="button top-button" type="button" data-open="sources">数据来源 <span aria-hidden="true">↗</span></button>
     </div>
@@ -115,15 +118,46 @@
     <section class="panel details" id="details" aria-labelledby="details-title">
       <div class="panel-head">
         <div><h2 id="details-title">成交明细</h2><p id="detail-note"></p></div>
-        <button class="button secondary" id="export" type="button"><span aria-hidden="true">↓</span> 导出 CSV</button>
+        <div class="chart-controls">
+          <a class="button secondary" href="#communities">查小区</a>
+          <button class="button secondary" id="export" type="button"><span aria-hidden="true">↓</span> 导出 CSV</button>
+        </div>
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th scope="col" id="table-date">日期</th><th scope="col">区域</th><th scope="col" class="numeric">成交套数</th><th scope="col" class="numeric">成交面积（㎡）</th><th scope="col" class="numeric">套均面积（㎡）</th><th scope="col">数据来源</th></tr></thead>
+          <thead><tr><th scope="col" id="table-date">日期</th><th scope="col">区域</th><th scope="col" id="table-coverage" hidden>覆盖天数</th><th scope="col" class="numeric">成交套数</th><th scope="col" class="numeric">成交面积（㎡）</th><th scope="col" class="numeric">套均面积（㎡）</th><th scope="col">数据来源</th></tr></thead>
           <tbody id="table-body"></tbody>
         </table>
       </div>
       <div class="table-foot"><span id="page-count"></span><div class="page-buttons"><button type="button" id="page-prev" aria-label="上一页">‹</button><button type="button" id="page-next" aria-label="下一页">›</button></div></div>
+    </section>
+
+    <section class="panel communities" id="communities" aria-labelledby="community-title">
+      <div class="panel-head">
+        <div>
+          <h2 id="community-title">小区参考价查询</h2>
+          <p>住建局 2021 年 2 月 8 日发布的历史参考价。近期成交套数、成交价和逐套记录需要小区级成交数据。</p>
+        </div>
+        <a class="button secondary" href="https://zjj.sz.gov.cn/attachment/0/749/749839/8545737.pdf" target="_blank" rel="noopener noreferrer">官方原表 ↗</a>
+      </div>
+      <div class="community-controls">
+        <label class="filter-field"><span>小区</span><input id="community-search" type="search" placeholder="输入小区名，例如 碧波花园"></label>
+        <label class="filter-field"><span>区</span><select id="community-district"></select></label>
+        <label class="filter-field"><span>街道</span><select id="community-street"></select></label>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">小区</th><th scope="col">区</th><th scope="col">街道</th><th scope="col" class="numeric">2021 年参考价（元/㎡）</th></tr></thead>
+          <tbody id="community-results"></tbody>
+        </table>
+      </div>
+      <div class="table-foot">
+        <span id="community-count" aria-live="polite"></span>
+        <div class="page-buttons">
+          <button type="button" id="community-prev" aria-label="小区上一页">‹</button>
+          <button type="button" id="community-next" aria-label="小区下一页">›</button>
+        </div>
+      </div>
     </section>
 
     <section class="panel metrics" aria-labelledby="metrics-title">
