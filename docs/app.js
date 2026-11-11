@@ -313,20 +313,27 @@ function render() {
   const rows = availableRows();
   const config = granularity[state.kind];
   const weekly = state.kind === "weekly";
+  const monthly = state.kind === "monthly";
   const details = weekly ? [...rows, ...weekSamples.values()] : rows;
   const dates = [...new Set(details.map((row) => row.date))].sort().reverse();
-  const latest = dates[0] ?? "";
+  const latestRecorded = dates[0] ?? "";
+  const latest = monthly ? shift(shenzhenDate().slice(0, 7), -1) : latestRecorded;
+  const selectableDates = monthly
+    ? [...new Set([...dates, ...Array.from({ length: Math.max(...config.options) }, (_, index) => shift(latest, -index))])].sort().reverse()
+    : dates;
   const districts = [...new Set(details.map((row) => row.district))].filter((name) => name !== wholeCity);
   districts.sort((a, b) => a.localeCompare(b, "zh-CN"));
-  if (!dates.includes(state.date)) state.date = latest;
+  if (!selectableDates.includes(state.date)) state.date = latestRecorded || latest;
   if (state.district !== wholeCity && !districts.includes(state.district)) state.district = wholeCity;
   selectOptions(byId("district-select"), [[wholeCity, "深圳全市"], ...districts.map((district) => [district, district])], state.district);
-  selectOptions(byId("date-select"), dates.map((date) => [date, formatPeriod(date)]), state.date);
+  selectOptions(byId("date-select"), selectableDates.map((date) => [
+    date, formatPeriod(date) + (monthly && !lookup(date) ? " · 未收录" : "")
+  ]), state.date);
   setText("date-label", config.label);
   setText("table-date", config.label);
   const latestDaily = weekly && latest ? [...records.values()]
     .reduce((date, row) => row.kind === "daily" && row.date > date ? row.date : date, "") : "";
-  setText("data-status", latest ? "已收录至 " + formatDate(latestDaily || latest) : "暂无数据");
+  setText("data-status", latestRecorded ? "已收录至 " + formatDate(latestDaily || latestRecorded) : "暂无数据");
   byId("backup").hidden = importedRows.length === 0;
   document.querySelectorAll("[data-kind]").forEach((button) => {
     button.setAttribute("aria-pressed", String(button.dataset.kind === state.kind));
@@ -348,6 +355,7 @@ function render() {
   const covered = chartPoints.filter((point) => point.value !== null).length;
   const partialCount = weekly ? periods.filter(lookupWeekSample).length : 0;
   const coverage = weekly ? "完整周 " + covered + " 个 · 部分周 " + partialCount + " 个"
+    : monthly ? "已收录 " + covered + "/" + periods.length + " 个月"
     : periods.length ? covered + " / " + periods.length + " 个统计期有数据" : "需导入完整日数据后汇总";
   setText("coverage", coverage);
   const name = state.district === wholeCity ? "深圳全市" : state.district;
@@ -356,7 +364,7 @@ function render() {
   const endDate = state.kind === "weekly" && periods.length ? shift(periods.at(-1), 6) : periods.at(-1);
   setText("detail-note", name + (weekly
     ? " · 部分周仅合计已收录的日期，周趋势和环比使用完整自然周。"
-    : periods.length ? " · " + formatDate(periods[0]) + " 至 " + formatDate(endDate) : ""));
+    : periods.length ? " · " + formatDate(periods[0]) + " 至 " + formatDate(endDate) + (monthly ? " · 缺失月份留空" : "") : ""));
   setText("chart-empty", weekly ? "所选范围暂无完整周，已收录日期可在成交明细查看。" : "这个时间范围没有可用数据。");
   visibleDetails = periods.slice().reverse()
     .map((date) => lookup(date) ?? (weekly ? lookupWeekSample(date) : undefined)).filter(Boolean);
