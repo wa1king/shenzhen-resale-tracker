@@ -27,7 +27,7 @@
         <a href="#overview" aria-current="location">成交总览</a>
         <a href="#regions">区域分布</a>
         <a href="#prices">价格指数</a>
-        <a href="#details">成交明细</a>
+        <a href="#details">成交统计</a>
         <a href="#communities">小区查询</a>
       </nav>
       <button class="button top-button" type="button" data-open="sources">数据来源 <span aria-hidden="true">↗</span></button>
@@ -117,7 +117,7 @@
 
     <section class="panel details" id="details" aria-labelledby="details-title">
       <div class="panel-head">
-        <div><h2 id="details-title">成交明细</h2><p id="detail-note"></p></div>
+        <div><h2 id="details-title">成交统计</h2><p>每行汇总一个区域和统计期的成交套数与面积。</p><p id="detail-note"></p></div>
         <div class="chart-controls">
           <a class="button secondary" href="#communities">查小区</a>
           <button class="button secondary" id="export" type="button"><span aria-hidden="true">↓</span> 导出 CSV</button>
@@ -136,7 +136,8 @@
       <div class="panel-head">
         <div>
           <h2 id="community-title">小区历史参考价查询</h2>
-          <p>住建局 2021 年 2 月 8 日发布。近一年小区实际成交价、套数和逐套记录暂无可核实的政府公开来源。</p>
+          <p>住建局 2021 年 2 月 8 日发布。公开成交日表按区汇总，无法按楼栋、房号查实际成交价。</p>
+          <p>查询本人名下房屋档案，可在「i深圳」搜索「不动产登记资料查询」。<a href="https://pnr.sz.gov.cn/bmgkml/djzx/yshj/content/post_11937288.html" target="_blank" rel="noopener noreferrer">查看官方申办指南 ↗</a></p>
         </div>
         <a class="button secondary" href="https://zjj.sz.gov.cn/attachment/0/749/749839/8545737.pdf" target="_blank" rel="noopener noreferrer">官方原表 ↗</a>
       </div>
@@ -180,7 +181,7 @@
   <dialog id="sources-dialog" aria-labelledby="sources-title">
     <div class="dialog-head"><h2 id="sources-title">数据来源与口径</h2><button class="close" type="button" aria-label="关闭">×</button></div>
     <div class="dialog-body">
-      <p>成交套数和面积来自深圳市住建局公开的二手房成交统计，筛选用途为住宅。价格走势采用国家统计局发布的深圳二手住宅销售价格指数。</p>
+      <p>成交套数和面积来自深圳市住建局公开的二手房成交统计，筛选用途为住宅。日表按日期和行政区汇总，字段包括日期、区、用途、套数、面积和序号。价格走势采用国家统计局发布的深圳二手住宅销售价格指数。</p>
       <div id="source-list" class="source-list"></div>
       <p class="muted">各区数据按可查范围展示，缺少记录时留空。价格指数反映价格变动幅度，单位为百分比。</p>
     </div>

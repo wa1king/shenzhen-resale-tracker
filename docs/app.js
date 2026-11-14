@@ -291,7 +291,7 @@ function renderTable() {
     const cell = row.insertCell();
     cell.colSpan = weekly ? 7 : 6;
     cell.className = "empty";
-    cell.textContent = weekly ? "所选区域暂无日度记录可按周归集。" : "当前筛选暂无成交明细。";
+    cell.textContent = weekly ? "所选区域暂无日度记录可按周归集。" : "当前筛选暂无成交统计。";
   }
   setText("page-count", pageRows.length
     ? (first + 1) + "–" + (first + pageRows.length) + " 条 / 共 " + visibleDetails.length + " 条"
@@ -365,7 +365,7 @@ function render() {
   setText("detail-note", name + (weekly
     ? " · 部分周仅合计已收录的日期，周趋势和环比使用完整自然周。"
     : periods.length ? " · " + formatDate(periods[0]) + " 至 " + formatDate(endDate) + (monthly ? " · 缺失月份留空" : "") : ""));
-  setText("chart-empty", weekly ? "所选范围暂无完整周，已收录日期可在成交明细查看。" : "这个时间范围没有可用数据。");
+  setText("chart-empty", weekly ? "所选范围暂无完整周，已收录日期可在成交统计查看。" : "这个时间范围没有可用数据。");
   visibleDetails = periods.slice().reverse()
     .map((date) => lookup(date) ?? (weekly ? lookupWeekSample(date) : undefined)).filter(Boolean);
   renderSummary(dates);
