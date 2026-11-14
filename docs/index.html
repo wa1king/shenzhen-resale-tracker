@@ -15,6 +15,8 @@
   <script defer src="price.js"></script>
   <script defer src="community-data.js"></script>
   <script defer src="community.js"></script>
+  <script defer src="deal-samples.js"></script>
+  <script defer src="deal-search.js"></script>
 </head>
 <body>
   <header class="topbar">
@@ -28,6 +30,7 @@
         <a href="#regions">区域分布</a>
         <a href="#prices">价格指数</a>
         <a href="#details">成交统计</a>
+        <a href="#sales">逐套成交</a>
         <a href="#communities">小区查询</a>
       </nav>
       <button class="button top-button" type="button" data-open="sources">数据来源 <span aria-hidden="true">↗</span></button>
@@ -39,11 +42,12 @@
       <div>
         <p class="location"><span aria-hidden="true"></span> 广东省 · 深圳市</p>
         <h1 id="page-title">二手房成交跟踪</h1>
-        <p class="subtitle">深圳市住建局成交数据 · 国家统计局价格指数</p>
+        <p class="subtitle">查看官方成交统计、价格指数和小区成交样本。</p>
       </div>
       <div class="heading-actions">
         <span class="data-status" id="data-status"></span>
-        <button class="button primary" type="button" data-open="update"><span class="plus" aria-hidden="true">+</span> 更新数据</button>
+        <a class="button primary top-sales-link" href="#sales">查小区成交</a>
+        <button class="button secondary" type="button" data-open="update"><span class="plus" aria-hidden="true">+</span> 更新数据</button>
       </div>
     </section>
 
@@ -119,7 +123,7 @@
       <div class="panel-head">
         <div><h2 id="details-title">成交统计</h2><p>每行汇总一个区域和统计期的成交套数与面积。</p><p id="detail-note"></p></div>
         <div class="chart-controls">
-          <a class="button secondary" href="#communities">查小区</a>
+          <a class="button secondary" href="#sales">查小区成交</a>
           <button class="button secondary" id="export" type="button"><span aria-hidden="true">↓</span> 导出 CSV</button>
         </div>
       </div>
@@ -132,11 +136,61 @@
       <div class="table-foot"><span id="page-count"></span><div class="page-buttons"><button type="button" id="page-prev" aria-label="上一页">‹</button><button type="button" id="page-next" aria-label="下一页">›</button></div></div>
     </section>
 
+    <section class="panel communities" id="sales" aria-labelledby="sales-title">
+      <div class="panel-head">
+        <div>
+          <h2 id="sales-title">逐套成交查询</h2>
+          <p id="sales-coverage"></p>
+          <p>普通成交来自中原公开记录，法拍来自有明确最终成交价的公开报道。原页通常只显示楼层区间，议价率需有同套房源的最后挂牌价。</p>
+        </div>
+        <div class="chart-controls">
+          <a class="button secondary" href="https://sz.centanet.com/chengjiao/" target="_blank" rel="noopener noreferrer">中原原站 ↗</a>
+          <button class="button secondary" type="button" id="sales-export">导出 CSV</button>
+        </div>
+      </div>
+      <div class="community-controls sales-controls">
+        <label class="filter-field"><span>小区</span><input id="sales-query" type="search" placeholder="输入小区名，如 壹成中心"></label>
+        <label class="filter-field"><span>区</span><select id="sales-district"></select></label>
+        <label class="filter-field"><span>交易类型</span><select id="sales-type">
+          <option value="market">普通二手房</option><option value="auction">法拍</option><option value="">全部</option>
+        </select></label>
+        <label class="filter-field"><span>户型</span><select id="sales-layout"></select></label>
+        <label class="filter-field"><span>面积（㎡）</span><select id="sales-area">
+          <option value="">全部</option><option value="0,60">60 以下</option><option value="60,90">60–90</option>
+          <option value="90,120">90–120</option><option value="120,144">120–144</option><option value="144,">144 及以上</option>
+        </select></label>
+        <label class="filter-field"><span>成交月</span><select id="sales-month"></select></label>
+        <label class="filter-field"><span>总价（万）</span><select id="sales-price">
+          <option value="">全部</option><option value="0,300">300 以下</option><option value="300,500">300–500</option>
+          <option value="500,800">500–800</option><option value="800,">800 及以上</option>
+        </select></label>
+        <label class="filter-field"><span>排序</span><select id="sales-sort">
+          <option value="date">成交日期从近到远</option>
+          <option value="unit">单价从低到高</option>
+          <option value="price">总价从低到高</option>
+        </select></label>
+      </div>
+      <p class="sales-summary" id="sales-summary" aria-live="polite"></p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th scope="col">成交日期</th><th scope="col">小区 / 片区</th><th scope="col">户型 / 楼层</th><th scope="col" class="numeric">面积（㎡）</th><th scope="col" class="numeric">总价（万）</th><th scope="col" class="numeric">单价（元/㎡）</th><th scope="col">来源</th></tr></thead>
+          <tbody id="sales-results"></tbody>
+        </table>
+      </div>
+      <div class="table-foot">
+        <span id="sales-page"></span>
+        <div class="page-buttons">
+          <button type="button" id="sales-prev" aria-label="成交样本上一页">‹</button>
+          <button type="button" id="sales-next" aria-label="成交样本下一页">›</button>
+        </div>
+      </div>
+    </section>
+
     <section class="panel communities" id="communities" aria-labelledby="community-title">
       <div class="panel-head">
         <div>
           <h2 id="community-title">小区历史参考价查询</h2>
-          <p>住建局 2021 年 2 月 8 日发布。公开成交日表按区汇总，无法按楼栋、房号查实际成交价。</p>
+          <p>住建局 2021 年 2 月 8 日发布。点击小区名可查询上方已收录的成交样本。</p>
           <p>查询本人名下房屋档案，可在「i深圳」搜索「不动产登记资料查询」。<a href="https://pnr.sz.gov.cn/bmgkml/djzx/yshj/content/post_11937288.html" target="_blank" rel="noopener noreferrer">查看官方申办指南 ↗</a></p>
         </div>
         <a class="button secondary" href="https://zjj.sz.gov.cn/attachment/0/749/749839/8545737.pdf" target="_blank" rel="noopener noreferrer">官方原表 ↗</a>

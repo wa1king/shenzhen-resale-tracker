@@ -31,7 +31,13 @@
     tbody.replaceChildren();
     for (const row of matched.slice(first, first + size)) {
       const tr = tbody.insertRow();
-      tr.insertCell().textContent = row.name;
+      const link = document.createElement("button");
+      link.className = "community-sale-link";
+      link.type = "button";
+      link.textContent = row.name;
+      link.title = "查询该小区成交样本";
+      link.addEventListener("click", () => document.dispatchEvent(new CustomEvent("lookup-community-sales", { detail: row.name })));
+      tr.insertCell().append(link);
       tr.insertCell().textContent = row.district;
       tr.insertCell().textContent = row.street;
       const price = tr.insertCell();
